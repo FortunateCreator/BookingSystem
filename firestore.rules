@@ -1,0 +1,111 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    // Collection: users
+    // Fields: uid, email, role (admin|investor|guest), name
+    //
+    // Collection: rooms
+    // Fields: roomNumber, type, basePrice, investorId, revenueSplit, status
+    //
+    // Collection: bookings
+    // Fields: roomId, guestId, startDate, endDate, totalAmount, status, createdAt
+    //
+    // Collection: availability_overrides
+    // Fields: roomId, investorId, startDate, endDate, status (Pending_Admin|Approved|Rejected), type, reason
+    //
+    // Collection: transactions
+    // Fields: bookingId, roomId, investorAmount, resortAmount, type, date
+    //
+    // Collection: maintenance_logs
+    // Fields: roomId, description, cost, proofUrl, date, adminId
+    //
+    // Collection: audit_logs
+    // Fields: targetId, targetType, action, changedBy, timestamp
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+             (getUserData().role == 'admin' || 
+              (request.auth.token.email == "jacquelineilboudo489@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isInvestor() {
+      return isAuthenticated() && getUserData().role == 'investor';
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow create: if isAuthenticated() && (isAdmin() || (isOwner(userId) && request.resource.data.role == 'guest'));
+      allow update: if isAuthenticated() && (isAdmin() || (isOwner(userId) && request.resource.data.role == resource.data.role));
+    }
+
+    match /rooms/{roomId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    match /bookings/{bookingId} {
+      allow read: if isAuthenticated() && (
+        isAdmin() || 
+        request.auth.uid == resource.data.guestId || 
+        request.auth.uid == get(/databases/$(database)/documents/rooms/$(resource.data.roomId)).data.investorId
+      );
+      allow create: if isAuthenticated();
+      allow update: if isAdmin() || (isAuthenticated() && request.auth.uid == resource.data.guestId);
+    }
+
+    match /availability_overrides/{overrideId} {
+      allow read: if isAuthenticated() && (isAdmin() || request.auth.uid == resource.data.investorId);
+      allow create: if isInvestor() && request.resource.data.investorId == request.auth.uid;
+      allow update: if isAdmin();
+      allow delete: if isAdmin() || (isInvestor() && resource.data.investorId == request.auth.uid && resource.data.status == 'Pending_Admin');
+    }
+
+    match /transactions/{transactionId} {
+      allow read: if isAuthenticated() && (
+        isAdmin() || 
+        request.auth.uid == get(/databases/$(database)/documents/rooms/$(resource.data.roomId)).data.investorId
+      );
+      allow write: if isAdmin();
+    }
+
+    match /maintenance_logs/{logId} {
+      allow read: if isAuthenticated() && (
+        isAdmin() || 
+        request.auth.uid == get(/databases/$(database)/documents/rooms/$(resource.data.roomId)).data.investorId
+      );
+      allow write: if isAdmin();
+    }
+
+    match /audit_logs/{logId} {
+      allow read: if isAdmin();
+      allow create: if isAuthenticated();
+    }
+  }
+}

@@ -1,0 +1,110 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "System user with RBAC",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string", "format": "email" },
+        "role": { "type": "string", "enum": ["admin", "investor", "guest"] },
+        "name": { "type": "string" }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Room": {
+      "title": "Room",
+      "description": "Resort accommodation unit",
+      "type": "object",
+      "properties": {
+        "roomNumber": { "type": "string" },
+        "type": { "type": "string" },
+        "basePrice": { "type": "number" },
+        "investorId": { "type": "string" },
+        "revenueSplit": { "type": "number", "description": "Investor share percentage (0-1)" },
+        "status": { "type": "string", "enum": ["Available", "Maintenance"] }
+      },
+      "required": ["roomNumber", "investorId", "revenueSplit", "status"]
+    },
+    "Booking": {
+      "title": "Booking",
+      "description": "Guest reservation",
+      "type": "object",
+      "properties": {
+        "roomId": { "type": "string" },
+        "guestId": { "type": "string" },
+        "startDate": { "type": "string", "format": "date-time" },
+        "endDate": { "type": "string", "format": "date-time" },
+        "totalAmount": { "type": "number" },
+        "status": { "type": "string", "enum": ["Confirmed", "Cancelled"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["roomId", "startDate", "endDate", "status"]
+    },
+    "AvailabilityOverride": {
+      "title": "Availability Override",
+      "description": "Investor block requests",
+      "type": "object",
+      "properties": {
+        "roomId": { "type": "string" },
+        "investorId": { "type": "string" },
+        "startDate": { "type": "string", "format": "date-time" },
+        "endDate": { "type": "string", "format": "date-time" },
+        "status": { "type": "string", "enum": ["Pending_Admin", "Approved", "Rejected"] },
+        "type": { "type": "string", "enum": ["Block"] },
+        "reason": { "type": "string" }
+      },
+      "required": ["roomId", "investorId", "startDate", "endDate", "status"]
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Financial record",
+      "type": "object",
+      "properties": {
+        "bookingId": { "type": "string" },
+        "roomId": { "type": "string" },
+        "investorAmount": { "type": "number" },
+        "resortAmount": { "type": "number" },
+        "type": { "type": "string", "enum": ["Revenue", "Maintenance_Deduction"] },
+        "date": { "type": "string", "format": "date-time" }
+      },
+      "required": ["roomId", "investorAmount", "resortAmount", "type", "date"]
+    },
+    "MaintenanceLog": {
+      "title": "Maintenance Log",
+      "description": "Room maintenance records",
+      "type": "object",
+      "properties": {
+        "roomId": { "type": "string" },
+        "description": { "type": "string" },
+        "cost": { "type": "number" },
+        "proofUrl": { "type": "string" },
+        "date": { "type": "string", "format": "date-time" },
+        "adminId": { "type": "string" }
+      },
+      "required": ["roomId", "description", "cost", "date"]
+    },
+    "AuditLog": {
+      "title": "Audit Log",
+      "description": "Change history",
+      "type": "object",
+      "properties": {
+        "targetId": { "type": "string" },
+        "targetType": { "type": "string" },
+        "action": { "type": "string" },
+        "changedBy": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["targetId", "targetType", "action", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": { "schema": "User", "description": "User profiles" },
+    "/rooms/{roomId}": { "schema": "Room", "description": "Resort units" },
+    "/bookings/{bookingId}": { "schema": "Booking", "description": "Guest bookings" },
+    "/availability_overrides/{overrideId}": { "schema": "AvailabilityOverride", "description": "Block requests" },
+    "/transactions/{transactionId}": { "schema": "Transaction", "description": "Financial records" },
+    "/maintenance_logs/{logId}": { "schema": "MaintenanceLog", "description": "Maintenance history" },
+    "/audit_logs/{logId}": { "schema": "AuditLog", "description": "System audit trail" }
+  }
+}

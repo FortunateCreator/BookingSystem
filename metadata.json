@@ -1,0 +1,5 @@
+{
+  "name": "ResortLink: Investor & Booking Management",
+  "description": "A robust accommodation booking system for resorts with multi-tenant investor transparency, real-time booking logs, and automated block request workflows.",
+  "requestFramePermissions": []
+}
