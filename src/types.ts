@@ -45,7 +45,7 @@ export interface Transaction {
   bookingId?: string;
   roomId: string;
   investorAmount: number;
-  resortAmount: number;
+  centerAmount: number;
   type: 'Revenue' | 'Maintenance_Deduction';
   date: string;
 }

@@ -18,7 +18,7 @@ service cloud.firestore {
     // Fields: roomId, investorId, startDate, endDate, status (Pending_Admin|Approved|Rejected), type, reason
     //
     // Collection: transactions
-    // Fields: bookingId, roomId, investorAmount, resortAmount, type, date
+    // Fields: bookingId, roomId, investorAmount, centerAmount, type, date
     //
     // Collection: maintenance_logs
     // Fields: roomId, description, cost, proofUrl, date, adminId

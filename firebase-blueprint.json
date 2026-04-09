@@ -14,7 +14,7 @@
     },
     "Room": {
       "title": "Room",
-      "description": "Resort accommodation unit",
+      "description": "ZenSpace accommodation unit",
       "type": "object",
       "properties": {
         "roomNumber": { "type": "string" },
@@ -64,11 +64,11 @@
         "bookingId": { "type": "string" },
         "roomId": { "type": "string" },
         "investorAmount": { "type": "number" },
-        "resortAmount": { "type": "number" },
+        "centerAmount": { "type": "number" },
         "type": { "type": "string", "enum": ["Revenue", "Maintenance_Deduction"] },
         "date": { "type": "string", "format": "date-time" }
       },
-      "required": ["roomId", "investorAmount", "resortAmount", "type", "date"]
+      "required": ["roomId", "investorAmount", "centerAmount", "type", "date"]
     },
     "MaintenanceLog": {
       "title": "Maintenance Log",
@@ -100,7 +100,7 @@
   },
   "firestore": {
     "/users/{userId}": { "schema": "User", "description": "User profiles" },
-    "/rooms/{roomId}": { "schema": "Room", "description": "Resort units" },
+    "/rooms/{roomId}": { "schema": "Room", "description": "ZenSpace units" },
     "/bookings/{bookingId}": { "schema": "Booking", "description": "Guest bookings" },
     "/availability_overrides/{overrideId}": { "schema": "AvailabilityOverride", "description": "Block requests" },
     "/transactions/{transactionId}": { "schema": "Transaction", "description": "Financial records" },

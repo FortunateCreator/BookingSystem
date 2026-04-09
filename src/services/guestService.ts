@@ -57,13 +57,13 @@ export function useGuestData(userId: string | undefined) {
 
       // 2. Create Transaction for Investor
       const investorAmount = bookingData.totalAmount * room.revenueSplit;
-      const resortAmount = bookingData.totalAmount * (1 - room.revenueSplit);
+      const centerAmount = bookingData.totalAmount * (1 - room.revenueSplit);
 
       const transaction: Omit<Transaction, 'id'> = {
         bookingId: bookingRef.id,
         roomId: room.id,
         investorAmount,
-        resortAmount,
+        centerAmount,
         type: 'Revenue',
         date: new Date().toISOString()
       };

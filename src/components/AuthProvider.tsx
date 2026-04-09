@@ -20,42 +20,48 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        const userDocRef = doc(db, 'users', firebaseUser.uid);
-        const userDoc = await getDoc(userDocRef);
-        
-        if (userDoc.exists()) {
-          setUser(userDoc.data() as User);
-        } else {
-          // Check for invitation
-          const email = firebaseUser.email?.toLowerCase() || '';
-          const inviteDocRef = doc(db, 'invitations', email);
-          const inviteDoc = await getDoc(inviteDocRef);
+      try {
+        if (firebaseUser) {
+          const userDocRef = doc(db, 'users', firebaseUser.uid);
+          const userDoc = await getDoc(userDocRef);
+          
+          if (userDoc.exists()) {
+            setUser(userDoc.data() as User);
+          } else {
+            // Check for invitation
+            const email = firebaseUser.email?.toLowerCase() || '';
+            const inviteDocRef = doc(db, 'invitations', email);
+            const inviteDoc = await getDoc(inviteDocRef);
 
-          let role: UserRole = 'guest';
-          let name = firebaseUser.displayName || 'Guest';
+            let role: UserRole = 'guest';
+            let name = firebaseUser.displayName || 'Guest';
 
-          if (inviteDoc.exists()) {
-            const inviteData = inviteDoc.data();
-            role = inviteData.role;
-            name = inviteData.name || name;
-            // Clean up invitation
-            await deleteDoc(inviteDocRef);
+            if (inviteDoc.exists()) {
+              const inviteData = inviteDoc.data();
+              role = inviteData.role;
+              name = inviteData.name || name;
+              // Clean up invitation
+              await deleteDoc(inviteDocRef);
+            }
+
+            const newUser: User = {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email || '',
+              role,
+              name,
+            };
+            await setDoc(userDocRef, newUser);
+            setUser(newUser);
           }
-
-          const newUser: User = {
-            uid: firebaseUser.uid,
-            email: firebaseUser.email || '',
-            role,
-            name,
-          };
-          await setDoc(userDocRef, newUser);
-          setUser(newUser);
+        } else {
+          setUser(null);
         }
-      } else {
+      } catch (error) {
+        console.error('Auth initialization error:', error);
         setUser(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     });
 
     return () => unsubscribe();
